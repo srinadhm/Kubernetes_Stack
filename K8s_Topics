@@ -8,30 +8,49 @@ minikube ----- Single local development cluster (self managed),Configure Docker
 kops ---- Managed by AWS
 eks  ---- Managed by AWS
  
-kubernetes objects 
+1.Kubernetes objects 
 pod 
 replication controller
 replica set 
 deployment 
-serivce 
+
+2.Serivce Types
 node port 
 cluster ip 
 load balancer
 
-namespace default namespaces,create namespaces
+3.namespace default namespaces,create namespaces
 limits 
-Stateful set Daemon set
-Configuration  : config map and secrets 
-volumes ( aws efs and nfs ) manual
+RESOURCE QUOTAS
+
+4.API Access Control
+Authorization : Role Based Access Control, Attribute Based Access Control, Node Authorization, Webhook Authorization
+
+5.Managing Service Accounts
+
+6.Stateful set Daemon set 
+
+7.Configuration  : config map and secrets , Reloader for configmap and secrets
+
+8.Volumes ( aws efs and nfs ) manual
 persistence volume
 persistence volume claim
-Pod and Node scheduling  : node selector, pod affinity, pod anti affinity ,node affinity, taint and toleration 
-health checks ---- Configure Liveness, Readiness and Startup Probes
-Kubernetes Dashboard Setup
-Autoscaling ---- horizontal pod autoscaler ,vertical pod autoscaler , Cluster pod autoscaler
-Reloader for configmap and secrets 
-Integration with Jenkins 
-Kubernetes Deployment strategies --- blue green rollback update recreate canary 
-Monitoring Kubernetes with Grafana and Promotheus 
-Ingress Contoller with ---- load balancer and route53 
+
+9.Pod and Node scheduling  : node selector, pod affinity, pod anti affinity ,node affinity, taint and toleration 
+
+10.Health checks ---- Configure Liveness, Readiness and Startup Probes
+
+11.Kubernetes Dashboard Setup
+
+12.Autoscaling ---- horizontal pod autoscaler ,vertical pod autoscaler , Cluster pod autoscaler
+ 
+13.Kubernetes Deployment strategies --- blue green, rollback update, recreate, canary
+
+14.Monitoring Kubernetes with Grafana and Promotheus 
+
+15.Ingress Contoller with ---- load balancer and route53 
+
+16.Helm charts 
+
+17.Integration with Jenkins 
 
