@@ -1,0 +1,95 @@
+Step1: Deploy Cluster Autoscaler:
+######
+
+# Deploy the Cluster Autoscaler to your cluster
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+
+# Add the cluster-autoscaler.kubernetes.io/safe-to-evict annotation to the deployment
+kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
+
+Step2: Edit Cluster Autoscaler Deployment to add Cluster name and two more parameters
+######
+
+	kubectl -n kube-system edit deployment.apps/cluster-autoscaler
+	Add cluster name
+	# Before Change
+			- --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/<YOUR CLUSTER NAME>
+	
+	# After Change
+			- --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/eksdemo1
+	Add two more parameters
+			- --balance-similar-node-groups
+			- --skip-nodes-with-system-pods=false
+		
+Sample for reference
+    spec:
+      containers:
+      - command:
+        - ./cluster-autoscaler
+        - --v=4
+        - --stderrthreshold=info
+        - --cloud-provider=aws
+        - --skip-nodes-with-local-storage=false
+        - --expander=least-waste
+        - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/eksdemo
+        - --balance-similar-node-groups
+        - --skip-nodes-with-system-pods=false
+		
+Step3: View Cluster Autoscaler logs to verify that it is monitoring your cluster load.
+######
+
+Step4: Deploy simple Application
+######
+
+	vi deployment.yml
+	----------------------------------------
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ca-demo-deployment
+      labels:
+        app: ca-nginx
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ca-nginx
+      template:
+        metadata:
+          labels:
+            app: ca-nginx
+        spec:
+          containers:
+          - name: ca-nginx
+            image: nginx
+            ports:
+            - containerPort: 80
+            resources:
+              requests:
+                cpu: "200m"
+                memory: "200Mi"
+	--------------------------------------------
+	kubectl apply -f deployment.yml
+	kubectl get pods
+	kubectl get nodes 
+
+Step5: Cluster Scale UP: Scale our application to 30 pods
+######
+
+	kubectl scale --replicas=30 deploy ca-demo-deployment 
+	kubectl get pods
+
+	# Terminal - 2: Verify nodes
+	kubectl get nodes -o wide
+
+Step6: Cluster Scale DOWN: Scale our application to 1 pod
+######
+
+	# Terminal - 1: Keep monitoring cluster autoscaler logs
+	kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+	
+	# Terminal - 2: Scale down the demo application to 1 pod
+	kubectl scale --replicas=1 deploy ca-demo-deployment 
+	
+	# Terminal - 2: Verify nodes
+	kubectl get nodes -o wide

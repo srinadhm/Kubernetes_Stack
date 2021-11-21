@@ -1,0 +1,129 @@
+###########################
+we are installing all devops tools one by one
+
+java
+
+how to build java projects using maven or gradle
+
+apache maven
+gradle
+####################
+
+code quality  --- sonarqube
+universal repositoru manaher
+
+nexus
+############################################
+jfrog
+
+############################
+
+jenkins
+
+apache tomcat
+docker 
+k8s
+
+ansible
+#############################
+
+allow security groups (firewall)
+sonarqube   --- 9000
+nexus port  --- 8081
+#########################
+
+
+open jdk or oracle jdk
+#############################
+[root@ip-172-31-30-243 opt]# /opt/apache-maven-3.8.1/bin/mvn --version
+Apache Maven 3.8.1 (05c21c65bdfed0f71a2f2ada8b84da59348c4c5d)
+Maven home: /opt/apache-maven-3.8.1
+Java version: 1.8.0_282, vendor: Red Hat, Inc., runtime: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "4.14.232-177.418.amzn2.x86_64", arch: "amd64", family: "unix"
+
+
+[root@ip-172-31-30-243 opt]# export MAVEN_HOME=/opt/apache-maven-3.8.1
+[root@ip-172-31-30-243 opt]# export PATH=$PATH:$MAVEN_HOME/bin
+[root@ip-172-31-30-243 opt]# mvn --version
+Apache Maven 3.8.1 (05c21c65bdfed0f71a2f2ada8b84da59348c4c5d)
+Maven home: /opt/apache-maven-3.8.1
+Java version: 1.8.0_282, vendor: Red Hat, Inc., runtime: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "4.14.232-177.418.amzn2.x86_64", arch: "amd64", family: "unix"
+
+
+we need to save the environment variables permanently
+
+we need to add this entries in a file called .bashrc
+
+
+
+we can create a seperate file /etc/profile.d/maven.sh
+
+
+########################
+there are some new java projects wwhich are using gradle instead of maven
+android projects will be bullt using gradle
+########################################
+
+
+https://services.gradle.org/distributions/gradle-7.1.1-bin.zip
+
+
+
+https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.0.0.45539.zip
+
+wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.0.0.45539.zip
+
+
+################
+java project i need to check quality of project whether overall code is good or bad based on some confitions
+
+dotnet
+python
+nodejs
+php
+
+saleforce apex
+
+
+Static code analysis for 15 languages
+Java, JavaScript, C#, TypeScript, Kotlin, Ruby, Go, Scala, Flex, Python, PHP, HTML, CSS, XML and VB.NET
+
+SonarQube
+#############
+SonarQube 7 works with java 8
+sonarqube 8/9 works with java 11
+
+
+we cant run sonarqube with root user as sonarqube uses elastic search interanally
+
+it is not recommenedd to run elastis search as a user
+
+if we want to run any server we need to bin folder and run the scriot
+[root@ip-172-31-30-243 sonarqube-9.0.0.45539]# cd bin/
+[root@ip-172-31-30-243 bin]# pwd
+/opt/sonarqube-9.0.0.45539/bin
+[root@ip-172-31-30-243 bin]# ls -lrt
+total 0
+drwxr-xr-x 3 root root 109 Jul  2 08:31 windows-x86-64
+drwxr-xr-x 3 root root  48 Jul  2 08:31 macosx-universal-64
+drwxr-xr-x 3 root root  48 Jul  2 08:31 linux-x86-64
+drwxr-xr-x 2 root root  25 Jul  2 08:31 jsw-license
+
+
+sudo yum install java-11-amazon-corretto-headless -y
+
+
+
+Why do you need to know about Elasticsearch?
+Shay wanted to create a storage and search engine that would be easy to operate. Elasticsearch is based on the Lucene engine on top of which Shay added an http rest interface which resulted in a distributed search engine that is incredibly easy to scale and returns results at lightning speed.
+
+
+################################
+
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.4-x86_64.rpm
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.4-x86_64.rpm.sha512
+shasum -a 512 -c elasticsearch-7.13.4-x86_64.rpm.sha512 
+sudo rpm --install elasticsearch-7.13.4-x86_64.rpm

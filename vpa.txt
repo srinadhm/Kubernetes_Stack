@@ -1,0 +1,39 @@
+Deploy Metrics:
+---------------
+	kubectl apply -f metrics-server/
+Deploy VPA:
+-----------
+	git clone https://github.com/kubernetes/autoscaler.git
+	git checkout vpa-release-0.8
+	cd autoscaler/vertical-pod-autoscaler
+	./hack/vpa-up.sh
+
+Deploy Application:
+-------------------
+	docker build -t naresh240/application-cpu:latest .
+	docker login
+	docker push naresh240/application-cpu:latest
+	
+	kubectl apply -f traffic-generator.yaml
+	kubectl apply -f deployment.yml
+	kubectl exec -it traffic-generator sh
+		apk add --no-cache wrk
+		wrk -c 5 -t 5 -d 99999 -H "Connection: Closed" http://application-cpu
+	
+	kubectl apply -f vpa.yml
+	
+Check Pod CPU and memory:
+-------------------------
+	kubectl top pods
+Check VPA Recommendations:
+--------------------------
+	kubectl describe vpa application-cpu
+Scale up number of pods:
+------------------------
+	kubectl scale deploy application-cpu --replicas 2
+Change update policy:
+---------------------
+	Change policy from "Off" to "Auto"
+Check pod CPU and Memory Again:
+-------------------------------
+	kubectl top pods

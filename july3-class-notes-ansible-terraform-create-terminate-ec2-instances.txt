@@ -1,0 +1,2140 @@
+####################
+how to create ec2 instance using ansible playbook
+2.how to create infratsture using terraform
+
+#######################################
+for password related information how to use ansible to read from aws secrets manager 
+##################################################################################
+
+how to use ansible vault
+#######################################
+
+install ansible on one machine 
+
+using ansible i wanted to create a new ec2 instance
+##########################################################
+[root@ip-172-31-50-128 ~]# yum install python2-pip -y
+Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
+Package python2-pip-20.2.2-1.amzn2.0.3.noarch already installed and latest version
+Nothing to do
+[root@ip-172-31-50-128 ~]# ^C
+[root@ip-172-31-50-128 ~]# pip install boto
+DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained. pip 21.0 will drop support for Python 2.7 in January 2021. More details about Python 2 support in pip can be found at https://pip.pypa.io/en/latest/development/release-process/#python-2-support
+WARNING: Running pip install with root privileges is generally not a good idea. Try `pip install --user` instead.
+Requirement already satisfied: boto in /usr/lib/python2.7/site-packages (2.49.0)
+
+
+#################
+we can use aws management console to create aws resources
+i wanted to create aws resources in a automated way instead of using aws management console
+
+for that we can use aws cli commands to create resources by instaling aws cli
+or else we can use python provided framework to create aws resources which is nothing but boto framework
+#########################################################################################################
+
+What does Boto mean AWS?
+software development kit
+Boto is a software development kit (SDK) designed to improve the use of the Python programming language in Amazon Web Services. ... Botocore provides more rudimentary access to AWS tools, simply making low-level client requests and getting results from APIs.
+
+
+in order to access aws resources we need iam permission 
+
+from ansible machine if you want to create any other aws resources in this case ec2 ansible machine needs permission
+to create ec2 instance
+
+permission can be provided using iam user or iam role
+#########################################################
+iam user we will get access key and secret access key
+iam role we need to attache to the ec2 insatnce
+
+#########################################################
+once role is created assingn newly created role to ansible control node 
+
+Amazon Linux 2 AMI (HVM), SSD Volume Type - ami-0dc2d3e4c0f9ebd18 (64-bit x86) / ami-008a8487adc2b32ec (64-bit Arm)
+Red Hat Enterprise Linux 8 (HVM), SSD Volume Type - ami-0b0af3577fe5e3532 (64-bit x86) / ami-01fc429821bf1f4b4 (64-bit Arm)
+Ubuntu Server 20.04 LTS (HVM), SSD Volume Type - ami-09e67e426f25ce0d7 (64-bit x86) / ami-00d1ab6b335f217cf (64-bit Arm)
+
+
+# Basic provisioning example
+- amazon.aws.ec2:
+    key_name: devopsaws
+    instance_type: t2.micro
+    image: ami-09e67e426f25ce0d7
+    wait: yes
+    group: webserver
+    count: 3
+    vpc_subnet_id: subnet-29e63245
+    assign_public_ip: yes
+	
+# Basic provisioning example
+- amazon.aws.ec2:
+    key_name: mykey
+    instance_type: t2.micro
+    image: ami-123456
+    wait: yes
+    group: webserver
+    count: 3
+    vpc_subnet_id: subnet-29e63245
+    assign_public_ip: yes
+	
+	
+Amazon Linux 2 AMI (HVM), SSD Volume Type - ami-0ab4d1e9cf9a1215a (64-bit x86) / ami-0d296d66f22f256c2
+Red Hat Enterprise Linux 8 (HVM), SSD Volume Type - ami-0b0af3577fe5e3532 (64-bit x86) / ami-01fc429821bf1f4b4 (64-bit Arm)
+Ubuntu Server 20.04 LTS (HVM), SSD Volume Type - ami-09e67e426f25ce0d7 (64-bit x86) / ami-00d1ab6b335f217cf (64-bit Arm)
+
+################
+virginia
+##################
+
+- name: Terminate instances
+  hosts: localhost
+  tasks:
+    - name: Terminate instances that were previously launched
+      amazon.aws.ec2:
+        state: 'absent'
+        instance_ids: '{{ ec2.instance_ids }}'
+		
+- 'i-0b2bfdffd16547ae6'
+- 'i-073640e23b52b8e30'
+      - 'i-xxxxxx'
+		
+i-0b2bfdffd16547ae6
+i-073640e23b52b8e30
+
+
+ohio
+############
+Amazon Linux 2 AMI (HVM), SSD Volume Type - ami-0277b52859bac6f4b (64-bit x86) / ami-08814ae27e6f9262d (64-bit Arm)
+
+us-east-1a subnet-ac7774e1
+vpc_subnet_id: subnet-ac7774e1
+
+
+but when i want to create infratsture i need a mechansim to see those resources are there if it is there dont create 
+if not only ythen crete
+###############################
+
+
+- name: Terminate instances
+  hosts: localhost
+  tasks:
+    - name: Terminate instances that were previously launched
+      amazon.aws.ec2:
+        state: 'absent'
+        instance_ids: '{{ ec2.instance_ids }}'
+		
+		
+i-07b975b6731764ed3
+i-08b4ac1478403798f
+i-0ec85ea9f1eb406f0
+i-04e83e4348ff56afb
+i-08b14eee813a20082
+i-0b67a25fc047cf89d
+
+- 'i-07b975b6731764ed3'
+- 'i-08b4ac1478403798f'
+- 'i-0ec85ea9f1eb406f0'
+- 'i-07b975b6731764ed3'
+- 'i-07b975b6731764ed3'
+- 'i-07b975b6731764ed3'
+
+###########
+[root@ip-172-31-50-128 ~]# cat create_ec2_playbook.yml
+---
+- hosts: localhost
+  tasks:
+    - name: create ec2 instance
+      ec2:
+        key_name: devops-8am
+        instance_type: t2.micro
+        image: ami-09e67e426f25ce0d7
+        wait: yes
+        group: default
+        count: 3
+        vpc_subnet_id: subnet-ac7774e1
+        assign_public_ip: yes
+        region: us-east-1
+
+##############
+[root@ip-172-31-50-128 ~]# cat termiate_ec2_instances.yml
+---
+- hosts: localhost
+  vars:
+    region: us-east-1
+    instance_ids:
+      - 'i-07b975b6731764ed3'
+      - 'i-08b4ac1478403798f'
+      - 'i-0ec85ea9f1eb406f0'
+  tasks:
+    - name: termiate ec2 instances
+      ec2:
+        state: 'absent'
+        instance_ids: '{{ instance_ids }}'
+        region: '{{ region }}'
+
+
+###############
+we need to use lambda function to stop or termiate ec2 instances either when we need or we can schedule
+#################################################################################################
+in the lambda function also we need to decide one programming language
+java
+dotnet
+python
+nodejs
+golang
+
+################
+python
+#############
+boto3 commands
+
+
+Example function code—stopping EC2 instances
+
+import boto3
+region = 'us-west-1'
+instances = ['i-12345cb6de4f78g9h', 'i-08ce9b2d7eccf6d26']
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    ec2.stop_instances(InstanceIds=instances)
+    print('stopped your instances: ' + str(instances))
+	
+i-04e83e4348ff56afb
+i-08b14eee813a20082
+i-0b67a25fc047cf89d
+region = 'us-east-1'
+import boto3
+instances = ['i-0f5840923f67d2155', 'i-09d4e50b9ab1cadbf','i-0fef0499deb5aae65']
+ec2client = boto3.client('ec2', region_name=region)
+
+ec2client.terminate_instances(InstanceIds=instances)
+
+
+###########
+if i use terrafoorm for creating the infrastrcure same thing can be used to destry as well
+##############################################################################
+we need to download and install terraform
+we need to integrate terraform with aws account for authentication
+there are multiple ways we can one by one
+###############################################
+https://releases.hashicorp.com/terraform/1.0.1/terraform_1.0.1_linux_amd64.zip
+
+i need authenticate terraform with aws account which i want to create infrastrcure
+############################################################
+Terraform 0.13 and later:
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+# Configure the AWS Provider
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Create a VPC
+resource "aws_vpc" "example" {
+  cidr_block = "10.0.0.0/16"
+}
+
+
+whenever we are trying to crete infrastrcure usin terraform we need to crate terraform related files with extension tf
+
+filename can be anything but extension should be .tf
+############################################
+
+
+
+# We strongly recommend using the required_providers block to set the
+# Azure Provider source and version being used
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+
+
+once we have the provider we need to start cretaing resources
+it can be ec2 resource or s3 bucket resource or vpc resource
+
+#################################
+
+resource "aws_instance" "web" {
+  ami           = "ami-0ab4d1e9cf9a1215a"
+  instance_type = "t2.micro"
+  key_name = "devops-8am"
+  security_groups = "default"
+  count         = "3"
+  tags = {
+    Name = "HelloWorld"
+  }
+}
+
+
+#############
+1.terraform
+2.cloudformation template
+################################
+
+
+i want to use terraform to create server and on that newly created server i want to install java?
+############################################################################################
+terraform create a ec2 instance
+
+terraform prosioners 
+local-exec
+remote-exec
+
+The local-exec provisioner invokes a local executable after a resource is created. This invokes a process on the machine running Terraform, not on the resource. See the remote-exec provisioner to run commands on the resource.
+
+
+
+terraform destroy -target aws_instance.web
+
+
+i want to deploy jar file to a server
+i waint to deploy war file to tomcat webapps folder
+
+############
+where ever our playbook is running on that machine boto and boto3 should be installed
+##################################################################################
+172.31.0.231
+
+
+
+###################
+1.find list of instance ids by proving a tag name or based on tag name
+
+find all the instances with tag key environment equals to tag value development
+#################################################################################
+i want everone one to do this python or shell scrript
+
+-------------------------------------
+import boto3
+region = 'us-east-1'                                                             (region)
+instances = ['i-06ae0898e355a33bf','i-06a19db73f230d273']                        (instance id )
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    //ec2.start_instances(InstanceIds=instances) ( start instances)
+    //ec2.stop_instances(InstanceIds=instances) ( stop instances)
+      ec2.terminate_instances(InstanceIds=instances) ( terminate instances)
+    print('stopped your instances: ' + str(instances))
+	
+>>> import boto3
+>>> region = 'us-east-1'
+>>> instances = ['i-06ae0898e355a33bf','i-06a19db73f230d273']
+>>> ec2 = boto3.client('ec2', region_name=region)
+>>> ec2.terminate_instances(InstanceIds=instances)
+{'TerminatingInstances': [{'CurrentState': {'Code': 32, 'Name': 'shutting-down'}, 'InstanceId': 'i-06ae0898e355a33bf', 'PreviousState': {'Code': 16, 'Name': 'running'}}, {'CurrentState': {'Code': 32, 'Name': 'shutting-down'}, 'InstanceId': 'i-06a19db73f230d273', 'PreviousState': {'Code': 16, 'Name': 'running'}}], 'ResponseMetadata': {'RequestId': '242370b9-d2ba-4921-85be-45df8d3d23b2', 'HTTPStatusCode': 200, 'HTTPHeaders': {'x-amzn-requestid': '242370b9-d2ba-4921-85be-45df8d3d23b2', 'cache-control': 'no-cache, no-store', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'content-type': 'text/xml;charset=UTF-8', 'transfer-encoding': 'chunked', 'vary': 'accept-encoding', 'date': 'Thu, 15 Jul 2021 05:50:22 GMT', 'server': 'AmazonEC2'}, 'RetryAttempts': 0}}
+
+	
+	
+	
+----------------------------
+
+root@ip-172-31-14-241:~# history
+    1  clear
+    2  vi /root/.ssh/authorized_keys
+    3  ifocnifg
+    4  ifconfig
+    5  python
+    6  sudo apt-get update -y
+    7  sudo apt-get install -y python-boto
+    8  sudo apt-get install -y python3-pip
+    9  pip3 install boto
+   10  cleat
+   11  clear
+   12  python3
+   13  pip3 install boto3
+   14  python3
+   15  clear
+   16  python3
+   17  history
+--------------------------
+
+[root@ip-172-31-51-73 ~]# history
+    1  cd terraform-workspace/
+    2  ll
+    3  cp /root/providers.tf .
+    4  cd ..
+    5  ll
+    6  cd terraform-workspace/
+    7  cp /root/provider.tf .
+    8  ll
+    9  vi create-ec2.tf
+   10  cat create-ec2.tf
+   11  clear
+   12  terraform init
+   13  terraform plan
+   14  vi create-ec2.tf
+   15  terraform plan
+   16  terraform apply
+   17  clear
+   18  terraform destroy
+   19  ll
+   20  cat provider.tf
+   21  clear
+   22  cat create-ec2.tf
+   23  ll
+   24  clear
+   25  ll
+   26  cat terraform.tfstate
+   27  terraform apply
+   28  cat terraform.tfstate
+   29  clear
+   30  terraform destroy -target aws_instance.web
+   31  clear
+   32  amazon-linux-extras install ansible2 -y
+   33  clear
+   34  ansible -version
+   35  ansible --version
+   36  clear
+   37  ssh-keygen
+   38  cat /root/.ssh/id_rsa.pub
+   39  ssh root@172.31.14.241
+   40  ll
+   41  clear
+   42  vi inventory
+   43  ll
+   44  cd
+   45  cp /root/terraform-workspace/inventory .
+   46  ll
+   47  vi create_playbook.yml
+   48  cat inventory
+   49  cat create_playbook.yml
+   50  ansible-playbook -i inventory create_playbook.yml
+
+-------------------------------------------
+
+
+Ansible install java on both ubuntu and redhat
+
+Amazon linux 2 ---- Master 52.55.171.182
+
+Redhat ---- node1 54.146.56.123 172.31.59.129 ip addr 
+ubuntu ---- node2 3.235.19.0    172.31.2.109 ip addr 
+
+Generate ssh key gen in amazon linux 2 and copy ssh key gen  to redhat and ubuntu authorized_keys
+after copying keys check the ssh connection once it is done 
+to connect to nodes we need to add nodes in a file called /etc/ansible/hosts which is called default inventory file by mentioning private ip address under group 
+
+[remotenodes]
+172.31.59.129
+172.31.2.109
+
+adding adding group in inventory file we can check the connection using ping module
+
+ansible -m ping remotenodes
+
+172.31.59.129 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/libexec/platform-python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+172.31.2.109 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+
+Now install java on redhat and ubuntu
+
+when: ansible_distribution == "Redhat" and ansible_distribution_major_version == "8.4" distribution_version": "8.4",
+
+Red Hat Enterprise Linux release 8.4 (Ootpa)
+
+Red Hat Enterprise Linux
+---
+- hosts: Java_Group
+
+  tasks:
+  - name: Update APT package manager repositories cache
+    become: true
+    apt:
+      update_cache: yes
+
+  - name:  
+    become: yes
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+     openjdk-8-jdk
+
+
+-----------------------
+
+
+Ansible variables passing using extra vars attribute 
+
+ansible-playbook deploy-apache.yaml --extra-vars “apache_listen_port=8080 apache_listen_port_ssl=443” 
+
+redhatdockerpkgname
+
+
+ansible-playbook install-java-8-redhat-ubuntu.yml --extra-vars “redhatdockerpkgname=docker ubuntugitpkgname=git”
+
+
+
+
+ 1  cat /etc/system-release
+    2  clear
+    3  ssh-keygen
+    4  cat /root/.ssh/id_rsa.pub.
+    5  cat /root/.ssh/id_rsa.pub
+    6  ssh root@172.31.59.129
+    7  ssh root@172.31.2.109
+    8  ll
+    9  clear
+   10  cd /etc/ansible
+   11  ll
+   12  cat ansible.cfg
+   13  clear
+   14  ll
+   15  vi hosts
+   16  ansible -m ping remotenodes
+   17  ll
+   18  cd
+   19  cd ansible-playbook/
+   20  vi install-java-8-redhat-ubuntu.yml
+   21  ansible-playbook --syntax-check install-java-8-redhat-ubuntu.yml
+   22  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   23  vi install-java-8-redhat-ubuntu.yml
+   24  clear
+   25  ansible-playbook --syntax-check install-java-8-redhat-ubuntu.yml
+   26  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   27  vi install-java-8-redhat-ubuntu.yml
+   28  ansible-playbook --syntax-check install-java-8-redhat-ubuntu.yml
+   29  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   30  ll
+   31  cat first_playbook.yml
+   32  vi print_redhat_facts.yml
+   33  ansible-playbook print_redhat_facts.yml
+   34  clear
+   35  ll
+   36  vi install-java-8-redhat-ubuntu.yml
+   37  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   38  vi install-java-8-redhat-ubuntu.yml
+   39  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   40  clear
+   41  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   42  vi install-java-8-redhat-ubuntu.yml
+   43  clear
+   44  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   45  ll
+   46  cat install-java-8-redhat-ubuntu.yml
+   47  cat print_redhat_facts.yml
+   48  ansible-playbook print_redhat_facts.yml
+   49  clear
+   50  vi install-java-8-redhat-ubuntu.yml
+   51  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   52  vi install-java-8-redhat-ubuntu.yml
+   53  ansible-playbook  install-java-8-redhat-ubuntu.yml
+   54  ansible-playbook  install-java-8-redhat-ubuntu.yml clear
+   55  clear
+   56  ll
+   57  cat first_playbook.yml
+   58  ll
+   59  cat print_redhat_facts.yml
+   60  cat install-java-8-redhat-ubuntu.yml
+   61  clear
+   62  vi install-java-8-redhat-ubuntu.yml
+   63  ansible-playbook --syntax-check install-java-8-redhat-ubuntu.yml
+   64  vi install-java-8-redhat-ubuntu.yml
+   65  ansible-playbook --syntax-check install-java-8-redhat-ubuntu.yml
+   66  clear
+   67  cat install-java-8-redhat-ubuntu.yml
+   68  clear
+   69  cat install-java-8-redhat-ubuntu.yml
+   70  ansible-playbook install-java-8-redhat-ubuntu.yml
+   71  clear
+   72  ansible-playbook install-java-8-redhat-ubuntu.yml --extra-vars “redhatdockerpkgname=docker ubuntugitpkgname=git”
+   73  cat install-java-8-redhat-ubuntu.yml
+   74  ansible-playbook install-java-8-redhat-ubuntu.yml --extra-vars "redhatdockerpkgname=docker ubuntugitpkgname=git"
+   75  ansible-playbook install-java-8-redhat-ubuntu.yml --extra-vars"redhatdockerpkgname=docker ubuntugitpkgname=git"
+   76  ansible-playbook install-java-8-redhat-ubuntu.yml --extra-vars "redhatdockerpkgname=docker,ubuntugitpkgname=git"
+   77  ansible-playbook install-java-8-redhat-ubuntu.yml --extra-vars "redhatdockerpkgname=docker ubuntugitpkgname=git"
+
+
+  1  cat /root/.ssh/authorized_keys
+    2  vi /root/.ssh/authorized_keys
+    3  python
+    4  touch demo
+    5  ll
+    6  rm -rf demo
+    7  ll
+    8  ip addr
+    9  clear
+   10  cat /etc/system-release
+   11  cat /etc/os-release
+   12  cat /etc/redhat-release
+   13  ifconfig
+   14  ip addrd
+   15  ip addr
+   16  java -version
+   17  rpm -qa | grep httpd
+   18  git --version
+   19  docker --version
+   20  docker -version
+   21  git --version
+   22  docker -version
+   23  docker --version
+   24  history
+
+
+ 1  cat /root/.ssh/authorized_keys
+    2  vi  /root/.ssh/authorized_keys
+    3  python
+    4  pwd
+    5  touch demo
+    6  ll
+    7  rm -rf demo
+    8  ll
+    9  ip addr
+   10  clear
+   11  cat /etc/system-release
+   12  cat /etc/procinfo
+   13  cat /proc/cpuinfo
+   14  cat /etc/os-release
+   15  java -version
+   16  git --version
+   17  httpd --version
+   18  sudo apt-get remove git
+   19  git --version
+   20  apt-get install git
+   21  git --version
+   22  sudo apt-get remove git
+   23  git --version
+   24  clear
+   25  git --version
+   26  history
+
+
+--------------
+
+from ansible point of view what is required to run a playbook 
+
+ssh setup between the machines
+create a inventory file
+
+--------------------------------
+ansible-playbook -i /root/hosts playbook.yml --extra-args=
+#######################################
+Executing Shell Script in Terraform via Null Resource
+How I can use Null Resource to execute the shell script by using local exec provisioner during provision.
+
+resource "null_resource" "health_check" {
+
+ provisioner "local-exec" {
+
+    command = "/bin/bash healthcheck.sh"
+  }
+}
+
+#!/bin/sh
+
+result=$(curl -X GET --header "Accept: */*" "https://jsonplaceholder.typicode.com/todos/1" | jq -r '.id')
+
+if [ $result -eq 1 ]
+then
+   exit 0
+else
+   exit 1
+fi
+
+
+
+----------------------------------------------------------
+
+
+
+
+
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "iam_for_lambda"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+iam_for_lambda_ec2_cloudwatch
+
+AWS Security Token Service (AWS STS)
+###################################
+resource "aws_lambda_function" "test_lambda" {
+  filename      = "lambda_function_payload.zip"
+  function_name = "lambda_function_name"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.test"
+
+  # The filebase64sha256() function is available in Terraform 0.11.12 and later
+  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
+  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+
+  runtime = "nodejs12.x"
+
+  environment {
+    variables = {
+      foo = "bar"
+    }
+  }
+}
+
+
+#################################
+Terraform has to be integrated with aws account
+we need iam role or iam user
+if we have  ec2 instance we can iam role if it is not ec2 instance any windows machine or physical machine we can use iam user 
+
+
+Access key ID
+AKIAYX7YMD5HNF2P6SVR
+Secret access key
+BYbh6orak/7dzXSqUQL36fc8RQgr/A2ib1x0XYiX
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAYX7YMD5HNF2P6SVR"
+  secret_key = "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"
+}
+
+provider "aws" {
+  region                  = "us-east-1"
+  shared_credentials_file = "C:\\Users\\QC\\.aws\\credentials"
+  profile                 = "srinadhprofile"
+}
+
+
+#####################################
+/etc/hosts
+[grpname]
+host1
+host2
+
+resource "null_resource" "ConfigureAnsibleLabelVariable" {
+  provisioner "local-exec" {
+    command = "echo [Ansible_Hosts:vars] > hosts"
+  }
+  provisioner "local-exec" {
+    command = "echo ansible_ssh_user=ec2-user >> hosts"
+  }
+  provisioner "local-exec" {
+    command = "echo ansible_ssh_private_key_file=/home/ec2-user/sam_sundar.pem >> hosts"
+  }
+  provisioner "local-exec" {
+    command =  "echo ansible_ssh_extra_args='-o StrictHostKeyChecking=no' >> hosts"
+  }  
+  provisioner "local-exec" {
+    command = "echo [Ansible_Hosts] >> hosts"
+  }
+}
+#########################
+[AnsibleHosts]
+172.31.63.232
+[AnsibleHosts:vars]
+ansible_ssh_user=ec2-user
+ansible_ssh_private_key_file=/home/ec2-user/devopsaws.pem
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+
+
+[AnsibleHosts12]
+172.31.61.251
+[AnsibleHosts12:vars]
+ansible_ssh_user=ec2-user
+ansible_ssh_private_key_file=/home/ec2-user/ansible.pem
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+#################################################################
+
+[AnsibleHosts]
+ansible_ssh_user=ec2-user
+ansible_ssh_private_key_file=/home/ec2-user/devopsaws.pem
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+
+
+[AnsibleHosts12]
+172.31.61.251
+[AnsibleHosts12]
+ansible_ssh_user=ec2-user
+ansible_ssh_private_key_file=/home/ec2-user/ansible.pem
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+
+
+resource "null_resource" "ProvisionRemoteHostsIpToAnsibleHosts" {
+  count = 3
+  connection {
+    type = "ssh"
+    user = "ec2-user"
+    host = "${element(aws_instance.ansible_inventory_test.*.private_ip, count.index)}"
+    private_key = "/home/ec2-user/sam_sundar.pem"
+  }
+ provisioner "remote-exec" {
+  inline = [
+     "sudo yum update -y",
+     "sudo yum install python-setuptools python-pip -y",
+   ]
+}
+  provisioner "local-exec" {
+    command = "echo ${element(aws_instance.ansible_inventory_test.*.private_ip, count.index)} >> hosts"
+  }
+}
+###################################
+resource "aws_instance" "ansible_inventory_test" {
+  count = 3
+  ami           = "ami-0732b62d310b80e97"
+  instance_type = "t2.micro"
+  key_name      = "sam_sundar"
+  vpc_security_group_ids = ["sg-0b57f7f4160f725d7"]
+  subnet_id     = "subnet-086824a143f8a1d6c"
+  tags = {
+    Name = "ansible_inventory_test_1"
+  }
+}
+
+resource "null_resource" "ProvisionRemoteHostsIpToAnsibleHosts" {
+  count = 3
+  connection {
+    type = "ssh"
+    user = "ec2-user"
+    host = "${element(aws_instance.ansible_inventory_test.*.private_ip, count.index)}"
+    private_key = "/home/ec2-user/sam_sundar.pem"
+  }
+ provisioner "remote-exec" {
+  inline = [
+     "sudo yum update -y",
+     "sudo yum install python-setuptools python-pip -y",
+   ]
+}
+  provisioner "local-exec" {
+    command = "echo ${element(aws_instance.ansible_inventory_test.*.private_ip, count.index)} >> hosts"
+  }
+}
+
+
+resource "null_resource" "ConfigureAnsibleLabelVariable" {
+  provisioner "local-exec" {
+    command = "echo [Ansible_Hosts:vars] > hosts"
+  }
+  provisioner "local-exec" {
+    command = "echo ansible_ssh_user=ec2-user >> hosts"
+  }
+  provisioner "local-exec" {
+    command = "echo ansible_ssh_private_key_file=/home/ec2-user/sam_sundar.pem >> hosts"
+  }
+  provisioner "local-exec" {
+    command =  "echo ansible_ssh_extra_args='-o StrictHostKeyChecking=no' >> hosts"
+  }  
+  provisioner "local-exec" {
+    command = "echo [Ansible_Hosts] >> hosts"
+  }
+}
+
+resource "null_resource" "ModifyApplyAnsiblePlayBook" {
+  provisioner "local-exec" {
+    command = "sleep 10; ansible-playbook -i hosts Jenkins_Ansible_Play.yaml"
+  }
+  depends_on = ["null_resource.ProvisionRemoteHostsIpToAnsibleHosts"]
+}
+
+
+
+   1  touch sample.txt
+    2  echo " hello world " > sample.txt
+    3  cat sample.txt
+    4  mkdir terraform-ansible
+    5  exit
+    6  hostnamectl set-hostname control-node
+    7  sudo -i
+    8  ll
+    9  exit
+   10  amazon-linux-extras install ansible2 -y
+   11  clear
+   12  ansible --version
+   13  clear
+   14  vi etc/ansible/hosts
+   15  cd /etc/ansible
+   16  ll
+   17  vi hosts
+   18  chmod 600 /home/ec2-user/devopsaws.pem
+   19  ansible -m ping AnsibleHosts
+   20  clear
+   21  vi hosts
+   22  clear
+   23  ansible -m ping AnsibleHosts
+   24  clear
+   25  vi hosts
+   26  ansible -m ping AnsibleHosts12
+   27  chmod 600 /home/ec2-user/ansible.pem
+   28  ansible -m ping AnsibleHosts12
+   29  vi hosts
+   30  clear
+   31  history
+
+###################################
+how to download jar from maven repository
+
+<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>42.2.22</version>
+</dependency>
+
+https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.22/postgresql-42.2.22.jar
+
+Ansible used python 
+
+Any module if it has any requirements we need to install using pip ( python ) 
+
+yum install python2-pip -y 
+
+pip install lxml 
+
+pip install boto
+
+pip install boto3
+
+# Download an artifact from a private repository requiring authentication
+- maven_artifact:
+    group_id: com.company
+    artifact_id: library-name
+    repository_url: 'https://repo.company.com/maven'
+    username: user
+    password: pass
+    dest: /tmp/library-name-latest.jar
+
+
+
+ 
+
+
+	
+ansible-vault encrypt_string  'java-1.8.0-openjdk-devel'
+
+ansible-playbook install_java.yml  --vault-password-file  /home/ec2-user/vault_pass.txt
+
+to secure ansible playbooks in addition to vault we have other 3rd party services like aws secrets manager and hashicorp vault 
+
+java8packagename
+
+ 1  amazon-linux-extras install ansible2 -y
+    2  clear
+    3  ansible --version
+    4  ansible -m ping localhost
+    5  vi install_java.yml
+    6  clear
+    7  ansible-playbook --syntax-check install_java.yml
+    8  ansible-vault encrypt install_java.yml
+    9  ll
+   10  ls -la
+   11  cd ansbile
+   12  cd ansible
+   13  cd .ansible
+   14  ll
+   15  cd tmp
+   16  ll
+   17  cd
+   18  cat install_java.yml
+   19  ansible-vault decrypt install_java.yml
+   20  cat install_java.yml
+   21  clear
+   22  vi install_java.yml
+   23  cat install_java.yml
+   24  ansible-vault view install_java.yml
+   25  ansible-vault encrypt install_java.yml
+   26  ansible-vault view install_java.yml
+   27  clear
+   28  ansible-vault  decrypt install_java.yml
+   29  ansible-vault view install_java.yml
+   30  clear
+   31  cat install_java.yml
+   32  ansible-vault encrypt_string  'java-1.8.0-openjdk-devel'
+   33  clear
+   34  vi install_java.yml
+   35  ansible-vault encrypt install_java.yml
+   36  clear
+   37  ansible-playbook install_java.yml --ask-vault-pass
+   38  java -version
+   39  cat install_java.yml
+   40  clear
+   41  ansible-vault decrypt install_java.yml
+   42  cat install_java.yml
+
+-----------------------------------
+
+
+history
+    1  amazon-linux-extras install ansible2 -y
+    2  clear
+    3  ansible --version
+    4  ansible -m ping localhost
+    5  vi install_java.yml
+    6  clear
+    7  ansible-playbook --syntax-check install_java.yml
+    8  ansible-vault encrypt install_java.yml
+    9  ll
+   10  ls -la
+   11  cd ansbile
+   12  cd ansible
+   13  cd .ansible
+   14  ll
+   15  cd tmp
+   16  ll
+   17  cd
+   18  cat install_java.yml
+   19  ansible-vault decrypt install_java.yml
+   20  cat install_java.yml
+   21  clear
+   22  vi install_java.yml
+   23  cat install_java.yml
+   24  ansible-vault view install_java.yml
+   25  ansible-vault encrypt install_java.yml
+   26  ansible-vault view install_java.yml
+   27  clear
+   28  ansible-vault  decrypt install_java.yml
+   29  ansible-vault view install_java.yml
+   30  clear
+   31  cat install_java.yml
+   32  ansible-vault encrypt_string  'java-1.8.0-openjdk-devel'
+   33  clear
+   34  vi install_java.yml
+   35  ansible-vault encrypt install_java.yml
+   36  clear
+   37  ansible-playbook install_java.yml --ask-vault-pass
+   38  java -version
+   39  cat install_java.yml
+   40  clear
+   41  ansible-vault decrypt install_java.yml
+   42  cat install_java.yml
+   43  history
+   44  ll
+   45  ansible-playbook install_java.yml  --ask-vault-pass
+   46  java -version
+   47  ansible-playbook install_java.yml  --ask-vault-pass
+   48  clear
+   49  ansible-vault encrypt_string 'srinadh'
+   50  vi /home/ec2-user/vault_pass.txt
+   51  ansible-vault encrypt install_java.yml
+   52  ansible-playbook install_java.yml  --vault-password-file  /home/ec2-user/vault_pass.txt
+   53  vi /home/ec2-user/vault_pass.txt
+   54  ansible-playbook install_java.yml  --vault-password-file  /home/ec2-user/vault_pass.txt
+   55  clear
+   56  cat install_java.yml
+   57  clear
+   58  yum install python2-pip -y
+   59  pip install boto3
+   60  clear
+   61  vi get_aws_sceret.yml
+   62  ansible-playbook get_aws_sceret.yml
+   63  vi get_aws_sceret.yml
+   64  ansible-playbook get_aws_sceret.yml
+   65  ll
+   66  vi get_aws_sceret.yml
+   67  ansible-playbook get_aws_sceret.yml
+   68  clear
+   69  aws configure
+   70  cd .aws
+   71  ll
+   72  cat config
+   73  clear
+   74  ansible-playbook get_aws_sceret.yml
+   75  cd
+   76  ll
+   77  vi get_aws_sceret.yml
+   78  ansible-playbook get_aws_sceret.yml
+   79  clear
+   80  ll
+   81  cat install_java.yml
+   82  clear
+   83  ansible-vault decrypt install_java.yml
+   84  cat install_java.yml
+   85  ll
+   86  cat get_aws_sceret.yml
+   87  clear
+   88  vi get_aws_sceret.yml
+   89  ansible-playbook get_aws_sceret.yml  --tags "dispass"
+   90  ll
+   91  ansible-vault decrypt_string  'java-1.8.0-openjdk-devel'
+   92  ansible-vault decrypt  'java-1.8.0-openjdk-devel'
+   93  ll
+   94  cat install_java.yml
+   95  ansible-vault decrypt  install_java.yml
+   96  clear
+   97  ll
+   98  cat install_java.yml
+   99  clear
+  100  ll
+  101  history
+[root@ip-172-31-24-145 ~]#
+
+------------------------------------
+
+
+ 1  amazon-linux-extras install ansible2 -y
+    2  clear
+    3  ansible -version
+    4  ansible --version
+    5  cd /etc/yum.repos.d
+    6  ll
+    7  clear
+    8  cd
+    9  yum install python2-pip -y
+   10  pip install boto
+   11  clear
+   12  boto -version
+   13  boto --version
+   14  clear
+   15  vi create_ec2_plyabook.yml
+   16  ansible-playbook --syntax-check create_ec2_plyabook.yml
+   17  vi create_ec2_plyabook.yml
+   18  ansible-playbook --syntax-check create_ec2_plyabook.yml
+   19  vi create_ec2_plyabook.yml
+   20  ansible-playbook --syntax-check create_ec2_plyabook.yml
+   21  export AWS_REGION='us-east-1'
+   22  ansible-playbook create_ec2_plyabook.yml
+   23  clear
+   24  unset AWS_REGION
+   25  echo $AWS_REGION
+   26  vi create_ec2_plyabook.yml
+   27  clear
+   28  ansible-playbook create_ec2_plyabook.yml
+   29  clear
+   30  vi terminate-ec2-instance-yml
+   31  ll
+   32  vi terminate-ec2-instance.yml
+   33  ansible-playbook --syntax-check terminate-ec2-instance.yml
+   34  ansible-playbook  terminate-ec2-instance.yml
+   35  vi terminate-ec2-instance.yml
+   36  ansible-playbook  terminate-ec2-instance.yml
+   37  ll
+   38  cat create_ec2_plyabook.yml
+   39  clear
+   40  cat terminate-ec2-instance.yml
+   41  history
+
+
+
+>>> import boto3
+>>> region = 'us-east-1' (region)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'region' is not defined
+>>> instances = ['i-0796e7cf43d72f04d']
+>>> import boto3
+>>> region = 'us-east-1'
+>>> instances = ['i-0796e7cf43d72f04d']
+>>> ec2 = boto3.client('ec2', region_name=region)
+/usr/lib/python2.7/site-packages/boto3/compat.py:86: PythonDeprecationWarning: Boto3 will no longer support Python 2.7 starting July 15, 2021. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.6 or later. More information can be found here: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-python-2-7-in-aws-sdk-for-python-and-aws-cli-v1/
+  warnings.warn(warning, PythonDeprecationWarning)
+>>> ec2.terminate_instances(InstanceIds=instances)
+{u'TerminatingInstances': [{u'InstanceId': 'i-0796e7cf43d72f04d', u'CurrentState': {u'Code': 32, u'Name': 'shutting-down'}, u'PreviousState': {u'Code': 16, u'Name': 'running'}}], 'ResponseMetadata': {'RetryAttempts': 0, 'HTTPStatusCode': 200, 'RequestId': '6739d97c-7d2f-4ba9-a798-17129e5dd9a0', 'HTTPHeaders': {'x-amzn-requestid': '6739d97c-7d2f-4ba9-a798-17129e5dd9a0', 'transfer-encoding': 'chunked', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'server': 'AmazonEC2', 'cache-control': 'no-cache, no-store', 'date': 'Thu, 15 Jul 2021 03:19:53 GMT', 'content-type': 'text/xml;charset=UTF-8'}}}
+
+
+
+
+
+
+
+import boto3
+region = 'us-east-1'                          (region)
+instances = ['i-0796e7cf43d72f04d']           (instance id )
+ec2 = boto3.client('ec2', region_name=region)
+
+def lambda_handler(event, context):
+    //ec2.start_instances(InstanceIds=instances) ( start instances)
+    //ec2.stop_instances(InstanceIds=instances) ( stop instances)
+	//ec2.terminate_instances(InstanceIds=instances) ( terminate instances)
+	
+    print('stopped your instances: ' + str(instances))
+	
+	
+	
+----------------
+
+Terraform download
+
+wget https://releases.hashicorp.com/terraform/1.0.2/terraform_1.0.2_linux_amd64.zip
+unzip terraform_1.0.2_linux_amd64.zip
+cp terraform /usr/bin/
+terraform -version
+Terraform v1.0.2
+on linux_amd64
+
+---------------
+Aws terraform provider file
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+# Configure the AWS Provider
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Create a VPC
+resource "aws_vpc" "example" {
+  cidr_block = "10.0.0.0/16"
+}
+
+-----------------------
+
+In terraform if we want to manage any infrastructure we need to create corresponding resource file 
+
+
+resource "aws_instance" "web" {
+  ami           = "ami-0dc2d3e4c0f9ebd18"
+  instance_type = "t2.micro"
+  key_name = "devopsaws"
+  security_groups = "default"
+  count = "3"
+  tags = {
+    Name = "HelloWorld"
+  }
+}
+
+
+Azure terraform provider file
+
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+
+
+
+
+-----------
+
+
+
+terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_instance.web[0] will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-0dc2d3e4c0f9ebd18"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "devopsaws"
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "HelloWorld"
+        }
+      + tags_all                             = {
+          + "Name" = "HelloWorld"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+  # aws_instance.web[1] will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-0dc2d3e4c0f9ebd18"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "devopsaws"
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "HelloWorld"
+        }
+      + tags_all                             = {
+          + "Name" = "HelloWorld"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+  # aws_instance.web[2] will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-0dc2d3e4c0f9ebd18"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "devopsaws"
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "HelloWorld"
+        }
+      + tags_all                             = {
+          + "Name" = "HelloWorld"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.
+[root@ip-172-31-51-73 terraform-workspace]# terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_instance.web[0] will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-0dc2d3e4c0f9ebd18"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "devopsaws"
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "HelloWorld"
+        }
+      + tags_all                             = {
+          + "Name" = "HelloWorld"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+  # aws_instance.web[1] will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-0dc2d3e4c0f9ebd18"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "devopsaws"
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "HelloWorld"
+        }
+      + tags_all                             = {
+          + "Name" = "HelloWorld"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+  # aws_instance.web[2] will be created
+  + resource "aws_instance" "web" {
+      + ami                                  = "ami-0dc2d3e4c0f9ebd18"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "devopsaws"
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "HelloWorld"
+        }
+      + tags_all                             = {
+          + "Name" = "HelloWorld"
+        }
+      + tenancy                              = (known after apply)
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = (known after apply)
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.web[1]: Creating...
+aws_instance.web[2]: Creating...
+aws_instance.web[0]: Creating...
+aws_instance.web[1]: Still creating... [10s elapsed]
+aws_instance.web[2]: Still creating... [10s elapsed]
+aws_instance.web[0]: Still creating... [10s elapsed]
+aws_instance.web[1]: Still creating... [20s elapsed]
+aws_instance.web[2]: Still creating... [20s elapsed]
+aws_instance.web[0]: Still creating... [20s elapsed]
+aws_instance.web[0]: Creation complete after 22s [id=i-07e01b8dd51159649]
+aws_instance.web[1]: Still creating... [30s elapsed]
+aws_instance.web[2]: Still creating... [30s elapsed]
+aws_instance.web[2]: Creation complete after 32s [id=i-0dd344d7a231d9e6b]
+aws_instance.web[1]: Creation complete after 32s [id=i-0d3b404e49b417d74]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+[root@ip-172-31-51-73 terraform-workspace]#
+
+
+[root@ip-172-31-51-73 terraform-workspace]# terraform destroy
+aws_instance.web[2]: Refreshing state... [id=i-0dd344d7a231d9e6b]
+aws_instance.web[1]: Refreshing state... [id=i-0d3b404e49b417d74]
+aws_instance.web[0]: Refreshing state... [id=i-07e01b8dd51159649]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # aws_instance.web[0] will be destroyed
+  - resource "aws_instance" "web" {
+      - ami                                  = "ami-0dc2d3e4c0f9ebd18" -> null
+      - arn                                  = "arn:aws:ec2:us-east-1:601279438670:instance/i-07e01b8dd51159649" -> null
+      - associate_public_ip_address          = true -> null
+      - availability_zone                    = "us-east-1e" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-07e01b8dd51159649" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "devopsaws" -> null
+      - monitoring                           = false -> null
+      - primary_network_interface_id         = "eni-04ee907822c1494ec" -> null
+      - private_dns                          = "ip-172-31-59-252.ec2.internal" -> null
+      - private_ip                           = "172.31.59.252" -> null
+      - public_dns                           = "ec2-100-24-205-173.compute-1.amazonaws.com" -> null
+      - public_ip                            = "100.24.205.173" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [
+          - "default",
+        ] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-27a22516" -> null
+      - tags                                 = {
+          - "Name" = "HelloWorld"
+        } -> null
+      - tags_all                             = {
+          - "Name" = "HelloWorld"
+        } -> null
+      - tenancy                              = "default" -> null
+      - vpc_security_group_ids               = [
+          - "sg-fd189aff",
+        ] -> null
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_put_response_hop_limit = 1 -> null
+          - http_tokens                 = "optional" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/xvda" -> null
+          - encrypted             = false -> null
+          - iops                  = 100 -> null
+          - tags                  = {} -> null
+          - throughput            = 0 -> null
+          - volume_id             = "vol-0d3dc29c0dfdd72b7" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp2" -> null
+        }
+    }
+
+  # aws_instance.web[1] will be destroyed
+  - resource "aws_instance" "web" {
+      - ami                                  = "ami-0dc2d3e4c0f9ebd18" -> null
+      - arn                                  = "arn:aws:ec2:us-east-1:601279438670:instance/i-0d3b404e49b417d74" -> null
+      - associate_public_ip_address          = true -> null
+      - availability_zone                    = "us-east-1c" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-0d3b404e49b417d74" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "devopsaws" -> null
+      - monitoring                           = false -> null
+      - primary_network_interface_id         = "eni-0cf6282f510395726" -> null
+      - private_dns                          = "ip-172-31-2-162.ec2.internal" -> null
+      - private_ip                           = "172.31.2.162" -> null
+      - public_dns                           = "ec2-44-193-1-244.compute-1.amazonaws.com" -> null
+      - public_ip                            = "44.193.1.244" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [
+          - "default",
+        ] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-ee3e4d88" -> null
+      - tags                                 = {
+          - "Name" = "HelloWorld"
+        } -> null
+      - tags_all                             = {
+          - "Name" = "HelloWorld"
+        } -> null
+      - tenancy                              = "default" -> null
+      - vpc_security_group_ids               = [
+          - "sg-fd189aff",
+        ] -> null
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_put_response_hop_limit = 1 -> null
+          - http_tokens                 = "optional" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/xvda" -> null
+          - encrypted             = false -> null
+          - iops                  = 100 -> null
+          - tags                  = {} -> null
+          - throughput            = 0 -> null
+          - volume_id             = "vol-0acc3b5dfdbf8734c" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp2" -> null
+        }
+    }
+
+  # aws_instance.web[2] will be destroyed
+  - resource "aws_instance" "web" {
+      - ami                                  = "ami-0dc2d3e4c0f9ebd18" -> null
+      - arn                                  = "arn:aws:ec2:us-east-1:601279438670:instance/i-0dd344d7a231d9e6b" -> null
+      - associate_public_ip_address          = true -> null
+      - availability_zone                    = "us-east-1e" -> null
+      - cpu_core_count                       = 1 -> null
+      - cpu_threads_per_core                 = 1 -> null
+      - disable_api_termination              = false -> null
+      - ebs_optimized                        = false -> null
+      - get_password_data                    = false -> null
+      - hibernation                          = false -> null
+      - id                                   = "i-0dd344d7a231d9e6b" -> null
+      - instance_initiated_shutdown_behavior = "stop" -> null
+      - instance_state                       = "running" -> null
+      - instance_type                        = "t2.micro" -> null
+      - ipv6_address_count                   = 0 -> null
+      - ipv6_addresses                       = [] -> null
+      - key_name                             = "devopsaws" -> null
+      - monitoring                           = false -> null
+      - primary_network_interface_id         = "eni-073630fcd71e9063e" -> null
+      - private_dns                          = "ip-172-31-48-149.ec2.internal" -> null
+      - private_ip                           = "172.31.48.149" -> null
+      - public_dns                           = "ec2-54-146-89-41.compute-1.amazonaws.com" -> null
+      - public_ip                            = "54.146.89.41" -> null
+      - secondary_private_ips                = [] -> null
+      - security_groups                      = [
+          - "default",
+        ] -> null
+      - source_dest_check                    = true -> null
+      - subnet_id                            = "subnet-27a22516" -> null
+      - tags                                 = {
+          - "Name" = "HelloWorld"
+        } -> null
+      - tags_all                             = {
+          - "Name" = "HelloWorld"
+        } -> null
+      - tenancy                              = "default" -> null
+      - vpc_security_group_ids               = [
+          - "sg-fd189aff",
+        ] -> null
+
+      - capacity_reservation_specification {
+          - capacity_reservation_preference = "open" -> null
+        }
+
+      - credit_specification {
+          - cpu_credits = "standard" -> null
+        }
+
+      - enclave_options {
+          - enabled = false -> null
+        }
+
+      - metadata_options {
+          - http_endpoint               = "enabled" -> null
+          - http_put_response_hop_limit = 1 -> null
+          - http_tokens                 = "optional" -> null
+        }
+
+      - root_block_device {
+          - delete_on_termination = true -> null
+          - device_name           = "/dev/xvda" -> null
+          - encrypted             = false -> null
+          - iops                  = 100 -> null
+          - tags                  = {} -> null
+          - throughput            = 0 -> null
+          - volume_id             = "vol-01e86fa4bc7765a17" -> null
+          - volume_size           = 8 -> null
+          - volume_type           = "gp2" -> null
+        }
+    }
+
+Plan: 0 to add, 0 to change, 3 to destroy.
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+
+aws_instance.web[2]: Destroying... [id=i-0dd344d7a231d9e6b]
+aws_instance.web[0]: Destroying... [id=i-07e01b8dd51159649]
+aws_instance.web[1]: Destroying... [id=i-0d3b404e49b417d74]
+aws_instance.web[2]: Still destroying... [id=i-0dd344d7a231d9e6b, 10s elapsed]
+aws_instance.web[0]: Still destroying... [id=i-07e01b8dd51159649, 10s elapsed]
+aws_instance.web[1]: Still destroying... [id=i-0d3b404e49b417d74, 10s elapsed]
+aws_instance.web[2]: Still destroying... [id=i-0dd344d7a231d9e6b, 20s elapsed]
+aws_instance.web[0]: Still destroying... [id=i-07e01b8dd51159649, 20s elapsed]
+aws_instance.web[1]: Still destroying... [id=i-0d3b404e49b417d74, 20s elapsed]
+aws_instance.web[2]: Destruction complete after 30s
+aws_instance.web[0]: Still destroying... [id=i-07e01b8dd51159649, 30s elapsed]
+aws_instance.web[1]: Still destroying... [id=i-0d3b404e49b417d74, 30s elapsed]
+aws_instance.web[0]: Destruction complete after 40s
+aws_instance.web[1]: Still destroying... [id=i-0d3b404e49b417d74, 40s elapsed]
+aws_instance.web[1]: Destruction complete after 40s
+
+Destroy complete! Resources: 3 destroyed.
+
+
+i-0dd344d7a231d9e6b
+i-07e01b8dd51159649
+i-0d3b404e49b417d74
+
+terraform destroy -target aws_instance.web

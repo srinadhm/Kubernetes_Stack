@@ -1,0 +1,38 @@
+1. Why we need git ?
+2. What makes git unique from other tools like SVN?
+3. Lets say i have maven repo cloned on to my local, did some changes and i have build the code now target floder will generated. So now when i do git operations like git add, git commit
+or any other git operations target folder should not be considered, how would you achieve the same?
+4. Diff b/w git pull and git fetch ?
+5. How to clone specific branch in git?
+6. When I issue mvn install what all things happens in background?
+7. What are the settings you need to do before running mvn deploy?
+8. Whay maven takes much time for 1st execution and from 2nd execution it will take less time?
+9. how to get present working floder ?
+10. how to copy files from local windows machine to cloud based linux machine?
+11. A shell script named test.sh can accept 4 parameters i.e a b c d the parameters wont supplied in order always and number parameters might also vary (only 2 parameters user might supply
+sometimes ), how to identify position of letter c ?
+12. Why we need ad-hoc commands, give scenario where you have used ansible ad-hoc commands?
+13. When i need detailed logs on executing ansible playbook what option i need to use?
+14. What are the modules have you worked on? Which module will you use for getting the file from node to master?
+15. Lets say i have a playbook which has 5 tasks in playbook, first 2 tasks should run on local machine and other 3 tasks should run on node?
+16. how to save only last 5 builds of jenkins job ?
+17. Have you worked on jenkinfile?
+18. Can we you use docker in jenkinsfile as a node?
+19. Who will handle docker container creation and deletion? If i am building a maven project always docker container is fresh instance it will try to download dependency from repository,
+what measurs you will take to reduce build time?
+20. Why we need multi branch pipeline?
+21. if you forgot jenkins password, how would login back?
+22. Any 3 best practices of docker ?
+23. diff b/w docker stop and docker kill?
+24. Command to list containers which state is exited?
+25. Command to cleanup docker host (deleting stopped containers, dangling images and unused networks) ?
+26. What version of docker you have used?
+27. Specific reason to use that particular version?
+28.Can we have multiple CMD in Dockerfile?
+29. Have you worked on docker swarm and docker compose?
+30. Can we have multiple containers in a pod?
+31. Can we have similar containers in pod ?
+32. Lets say i have 4 containers, one of them has failed how would you check which container has failed?
+33. What is liveness and readness probe? Why we need them?
+34. Have you worked on kubernetes monitoring? Which tools you have used?
+35. Can we deploy a pod on particular node?

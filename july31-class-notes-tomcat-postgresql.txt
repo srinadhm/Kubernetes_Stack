@@ -1,0 +1,217 @@
+########################
+1.how to install java on all distributions
+
+Aamazon linux2 
+Rhel 
+Ubuntu
+
+###################
+Apache maven
+Gradle
+
+
+#################
+SonarQube
+Nexus     --- Elastic Search
+jenkins
+################################
+
+Apache Tomcat
+
+amazon linux2
+ubuntu
+######################
+
+Postgresql
+Mysql
+
+Mongodb
+Cassandra
+
+##############
+
+
+
+sysctl vm.max_map_count
+  sysctl fs.file-max
+  ulimit -n
+  ulimit -u
+  
+  
+# Native memory allocation (mmap) failed to map 65536 bytes for committing reserved memory
+
+65536
+sysctl vm.max_map_count=65536
+
+
+Apache tomcat
+##############
+Pre-Requisties
+######################
+
+tomcat 8
+tomcat 9
+tomcat 10
+
+####################################
+
+https://downloads.apache.org/tomcat/tomcat-8/v8.5.69/bin/apache-tomcat-8.5.69.tar.gz
+https://downloads.apache.org/tomcat/tomcat-9/v9.0.50/bin/apache-tomcat-9.0.50.tar.gz
+https://downloads.apache.org/tomcat/tomcat-10/v10.0.8/bin/apache-tomcat-10.0.8.tar.gz
+
+
+any server if we want to start we need to go to server bin folder and look for scripts
+
+/opt/apache-tomcat-8.5.69/bin
+
+if we want to start tomcat 
+
+sh startup.sh
+
+if we want to stop tomcat
+sh shutdown.sh
+
+
+sh catalina.sh start
+sh catalina.sh stop
+
+##################################
+curl http://169.254.169.254/latest/meta-data/public-ipv4
+
+
+
+we can keep jenkins war file in tomcat webapps folder as well
+
+
+#########################
+1.amazon linux2
+
+we can download rpm and install it
+
+
+rpm -ivh rpmfilename
+
+######################################
+approach 2
+#####################
+ddownload jenkins repo
+and install jenkins using 
+yum install jenkins -y
+
+
+approach 3
+#####################
+download jenkins.war and run java -jar jenkins.war
+
+approach 4
+####################
+download jenkins.war and keep it in apache tomcat webapps folder
+and then start tomcat 
+
+####################################################################
+
+
+ubuntu
+########################
+approach1
+
+download deb file
+
+
+##################
+Databases
+#################
+
+SQL
+No-SQL
+####################
+
+postgres
+oracle
+mysql 
+sql server
+
+##################
+NO-SQL
+##################
+
+
+Mongodb
+Cassandra
+#####################
+
+
+http://apt.postgresql.org/pub/repos/apt/
+
+
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+
+
+root@ip-172-31-27-184:~# lsb_release -cs
+focal
+
+
+Can we connect to postgresql dataabse from windows machine?
+
+we need to download postgresql client and connect to the server which is running on ec2
+
+
+#################################
+SQL Workbench
+#################################
+
+SQL Workbench
+#################
+java should be there
+########################3
+
+
+or else specific to database
+install pgadmin4
+##########################
+
+
+jdbc:postgresql://host:port/name_of_database
+jdbc:postgresql://52.90.156.214:5432/postgres
+
+52.90.156.214
+5432
+
+
+first make sure server has a username and password for postgres
+####################################################
+we need to chnage server configuration files to allow remote connetions to postgresq; server
+host-based authentication
+pg_hba.conf
+postgresql.conf
+
+root@ip-172-31-27-184:~# find / -name pg_hba.conf
+find: ‘/proc/24340’: No such file or directory
+/etc/postgresql/13/main/pg_hba.conf
+
+
+# IPv4 local connections:
+host    all             all             0.0.0.0/0            md5
+
+
+we need to set password for postgres user
+
+root@ip-172-31-27-184:~# su - postgres
+postgres@ip-172-31-27-184:~$ psql
+psql (13.3 (Ubuntu 13.3-1.pgdg20.04+1))
+Type "help" for help.
+
+postgres=# \password postgres
+Enter new password:
+Enter it again:
+postgres=#
+
+https://mvnrepository.com/artifact/org.postgresql/postgresql/42.2.23
+
+
+##############
+1.how to create a database?
+2.how to connect to the database
+3.how to create table and insert data
+4.how to do backup and restore
+##############################################

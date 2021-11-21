@@ -1,0 +1,52 @@
+#################July19####################
+how to connect to database from lambda function
+###############################################
+
+pytthon lambda function
+###########################
+we need to know how to connect to mysql database or postgres database using python
+
+When a Lambda function configured with a Lambda layer is executed, AWS downloads any specified layers and extracts them to the /opt directory on the function execution environment. Each runtime then looks for a language-specific folder under the /opt directory. Lambda layers can come from multiple sources.
+
+mkdir -p python/lib/python3.7/site-packages
+mkdir -p python/lib/python3.8/site-packages
+
+json 
+#############
+i want to extarct few fields from json
+
+from jsonpath_ng import jsonpath, parse
+
+json_string = '{"id":1, "name":"Pankaj"}'
+json_data = json.loads(json_string)
+
+jsonpath_expression = parse('$.id')
+
+match = jsonpath_expression.find(json_data)
+
+print(match)
+print("id value is", match[0].value)
+
+
+A lambda function can reference only up to 5 layers
+
+################
+how to read a file from amazon s3 bucket in lambda function (python boto3)
+how to create list of tuple from json using python
+how to insert single record in database using python
+how to insert multiple records in database using python
+
+
+whenever someone uploads a csv file or excel file in s3 bucket i want to read the data and store in db
+##################################################
+mytuple = ("apple", "banana", "cherry")
+
+[("apple", "banana", "cherry"),("apple", "banana", "cherry")]
+
+
+Lambda triggers used to read real time data like kafka message brokers 
+
+lambda read from kafka
+lamda read from sqs
+lambda read from aamzon mq
+##############################

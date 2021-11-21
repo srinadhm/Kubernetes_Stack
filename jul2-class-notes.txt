@@ -1,0 +1,426 @@
+1) how to install os depended task?
+   node1: RHEL
+   node2: Ubuntu
+
+
+2) how to create a user using ansible?
+3) how to change folder permissions or ownership using ansible?
+4) how to create a file using jinja template using ansible?
+   how to create tomcat as a service and run tomcat service using ansible?
+5) how to install sonarqube using ansible?
+6) how to download artifacts from nexus using ansible?[assume already we had war in nexus]
+7) how to install multiple packages at once using ansible?
+8) how to set environment variables using ansible?
+
+1.how to check java is already there or not what is the java home path
+2.install java only when it is not there
+3.how to run tomcat as a service using ansible playbook
+4.how to install postgresql using ansible playbook
+5.how to do backup and restore of postgresql using ansible playbook
+
+########################
+i want to install tomcat and run tomcat as a service using tomcat dedicated user?
+1.we need to install java if it is not there
+2.we need to download tomcat if it is not there 
+3.we neee to create a user called tomcat 
+4..we neee to chnage ownership of tomcat directory to tomcat user
+5.we need to create service file under /etc/systemd/
+6.reload the system using systemctl daemon-reload
+7.start tomcat service
+########################################################
+
+how to check java is there already or not?
+yum list java-1.8.0-openjdk-devel will check package is available or not
+we need to check package is available and installed or not
+
+
+---
+ - hosts: all
+   tasks:
+     - name: Check if rpm is already installed
+       yum:
+         list: java-1.8.0-openjdk-devel
+         # If not installed yum_list.results[*].yumstate != installed
+       register: yum_list
+
+     - name: Conditionally do next thing
+       debug:
+         msg: "Not installed"
+       when: java_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+	   
+################
+[root@ip-172-31-21-29 ~]# cat download_tomcat.yml
+---
+- hosts: localhost
+  tasks:
+    - name: check java is already installed or not
+      yum:
+        list: java-1.8.0-openjdk-devel
+      register: java_output
+    - name: print java_output
+      debug:
+        msg: "{{ java_output }}"
+    - name: install java
+      yum:
+        name: java-1.8.0-openjdk-devel
+        state: latest
+      when: java_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+	  
+	  
+	  
+###################
+i want to check tomcat folder is there in /opt or not
+how to check folder exists or not in ansible?
+stat - retrieve file or file system status
+
+https://downloads.apache.org/tomcat/tomcat-10/v10.0.7/bin/apache-tomcat-10.0.7.tar.gz
+
+https://downloads.apache.org/tomcat/tomcat-10/v10.0.8/bin/apache-tomcat-10.0.8.tar.gz
+[root@ip-172-31-21-29 ~]# cat check_tomcat_exists.yml
+---
+- hosts: localhost
+  tasks:
+    - name: check tomcat folder already exists or not
+      stat:
+        path: /opt/apache-tomcat-10.0.7
+      register: tomcat_output
+    - name: print tomcat output
+      debug:
+        msg: "{{ tomcat_output }}"
+
+
+############
+[root@ip-172-31-21-29 ~]# cat download_tomcat.yml
+---
+- hosts: localhost
+  vars:
+    tomcat_download_url: https://downloads.apache.org/tomcat/tomcat-10/v10.0.7/bin/apache-tomcat-10.0.7.tar.gz
+  tasks:
+    - name: check java is already installed or not
+      yum:
+        list: java-1.8.0-openjdk-devel
+      register: java_output
+    - name: print java_output
+      debug:
+        msg: "{{ java_output }}"
+    - name: install java
+      yum:
+        name: java-1.8.0-openjdk-devel
+        state: latest
+      when: java_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+    - name: check tomcat folder already exists or not
+      stat:
+        path: /opt/apache-tomcat-10.0.7
+      register: tomcat_output
+    - name: download tomcat if it is not exists already
+      get_url:
+        url: "{{ tomcat_download_url }}"
+        dest: /opt
+        mode: 0755
+      when: not tomcat_output.stat.exists
+    - name: extract apache tomcat
+      unarchive:
+        src: /opt/apache-tomcat-10.0.7.tar.gz
+        dest: /opt
+        remote_src: True
+		
+###############
+create a tomcat user and chnage tomcat directory permissions from root user to tomcat user
+1.crate a user named tomcat10
+
+where should we create the service file
+######################################
+/etc/systemd/system/tomcat10.service
+
+
+we know the template of the service file 
+#####################################
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64/jre
+Environment=CATALINA_PID={{ tomcat_download_directory }}/apache-tomcat-10.0.7/temp/tomcat.pid
+Environment=CATALINA_HOME={{ tomcat_download_directory }}/apache-tomcat-10.0.7
+Environment=CATALINA_BASE={{ tomcat_download_directory }}/apache-tomcat-10.0.7
+Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+ExecStart="{{ tomcat_download_directory }}/apache-tomcat-10.0.7/bin/startup.sh"
+ExecStop=/bin/kill -15 $MAINPID
+
+User=tomcat10
+Group=tomcat10
+
+[Install]
+WantedBy=multi-user.target
+
+
+- name : Tomcat template
+       template:
+         src: tomcat.service.j2
+         dest: ./tomcat.service
+		 
+		 
+#################
+[root@ip-172-31-21-29 ~]# cat download_tomcat.yml
+---
+- hosts: localhost
+  vars:
+    tomcat_download_directory: /opt
+    tomcat_download_url: https://downloads.apache.org/tomcat/tomcat-10/v10.0.7/bin/apache-tomcat-10.0.7.tar.gz
+  tasks:
+    - name: check java is already installed or not
+      yum:
+        list: java-1.8.0-openjdk-devel
+      register: java_output
+    - name: print java_output
+      debug:
+        msg: "{{ java_output }}"
+    - name: install java
+      yum:
+        name: java-1.8.0-openjdk-devel
+        state: latest
+      when: java_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+    - name: check tomcat folder already exists or not
+      stat:
+        path: /opt/apache-tomcat-10.0.7
+      register: tomcat_output
+    - name: download tomcat if it is not exists already
+      get_url:
+        url: "{{ tomcat_download_url }}"
+        dest: /opt
+        mode: 0755
+      when: not tomcat_output.stat.exists
+    - name: extract apache tomcat
+      unarchive:
+        src: /opt/apache-tomcat-10.0.7.tar.gz
+        dest: /opt
+        remote_src: True
+    - name: create tomcat10 user
+      user:
+        name: tomcat10
+        shell: /bin/bash
+    - name: change tomcat directory ownership to tomcat10 user
+      file:
+        path: /opt/apache-tomcat-10.0.7
+        owner: tomcat10
+        group: tomcat10
+        state: directory
+        recurse: yes
+    - name: create tomcat service file
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        state: touch
+    - name: chaneg service file ownership
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+    - name: use template to create service file content dynamically
+      template:
+        src: /root/tomcat10.service.j2
+        dest: /etc/systemd/system/tomcat10.service
+    - name: just force systemd to reread configs (2.4 and above)
+      systemd:
+        daemon_reload: yes
+		
+############
+[root@ip-172-31-21-29 ~]# cat download_tomcat.yml
+---
+- hosts: localhost
+  vars:
+    tomcat_download_directory: /opt
+    tomcat_download_url: https://downloads.apache.org/tomcat/tomcat-10/v10.0.7/bin/apache-tomcat-10.0.7.tar.gz
+  tasks:
+    - name: check java is already installed or not
+      yum:
+        list: java-1.8.0-openjdk-devel
+      register: java_output
+    - name: print java_output
+      debug:
+        msg: "{{ java_output }}"
+    - name: install java
+      yum:
+        name: java-1.8.0-openjdk-devel
+        state: latest
+      when: java_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+    - name: check tomcat folder already exists or not
+      stat:
+        path: /opt/apache-tomcat-10.0.7
+      register: tomcat_output
+    - name: download tomcat if it is not exists already
+      get_url:
+        url: "{{ tomcat_download_url }}"
+        dest: /opt
+        mode: 0755
+      when: not tomcat_output.stat.exists
+    - name: extract apache tomcat
+      unarchive:
+        src: /opt/apache-tomcat-10.0.7.tar.gz
+        dest: /opt
+        remote_src: True
+    - name: create tomcat10 user
+      user:
+        name: tomcat10
+        shell: /bin/bash
+    - name: change tomcat directory ownership to tomcat10 user
+      file:
+        path: /opt/apache-tomcat-10.0.7
+        owner: tomcat10
+        group: tomcat10
+        state: directory
+        recurse: yes
+    - name: create tomcat service file
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        state: touch
+    - name: chaneg service file ownership
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+    - name: use template to create service file content dynamically
+      template:
+        src: /root/tomcat10.service.j2
+        dest: /etc/systemd/system/tomcat10.service
+    - name: just force systemd to reread configs (2.4 and above)
+      systemd:
+        daemon_reload: yes
+    - name: start tomcat10 service
+      service:
+        name: tomcat10
+        state: restarted
+
+
+#######
+[root@ip-172-31-21-29 ~]# readlink -e $(which java)
+/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64/jre/bin/java
+
+use ansible command module or shell module and execute readline command on the output use sed or cut os what ever it may be and get till jre only
+
+
+
+tomcat10.service.j2
+
+
+
+
+
+
+
+
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64/jre
+Environment=CATALINA_PID={{ tomcat_download_directory }}/apache-tomcat-10.0.8/temp/tomcat.pid
+Environment=CATALINA_HOME={{ tomcat_download_directory }}/apache-tomcat-10.0.8
+Environment=CATALINA_BASE={{ tomcat_download_directory }}/apache-tomcat-10.0.8
+Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+ExecStart="{{ tomcat_download_directory }}/apache-tomcat-10.0.8/bin/startup.sh"
+ExecStop=/bin/kill -15 $MAINPID
+
+User=tomcat10
+Group=tomcat10
+
+[Install]
+WantedBy=multi-user.target
+---------------------------------------------
+
+
+
+
+
+[root@ip-172-31-51-51 ansible]# cat download-java.yml
+---
+- hosts: localhost
+  vars:
+    tomcat_download_directory: /opt
+    tomcat_download_url : https://downloads.apache.org/tomcat/tomcat-10/v10.0.8/bin/apache-tomcat-10.0.8.tar.gz
+  tasks:
+    - name: check java is installed or not
+      yum:
+        list: java-1.8.0-openjdk-devel
+      register: java_output
+    - name: print java output
+      debug:
+        msg: "{{ java_output }}"
+    - name: install java
+      yum:
+        name: java-1.8.0-openjdk-devel
+        state: latest
+      when: java_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+    - name: check tomcat folder already exists or not
+      stat:
+        path: /opt/apache-tomcat-10.0.8
+      register: tomcat_output
+    - name: download tomcat if it not exists already
+      get_url:
+        url: "{{ tomcat_download_url  }}"
+        dest: /opt
+        mode: 0755
+      when: not tomcat_output.stat.exists
+    - name: extract tomcat
+      unarchive:
+        src: /opt/apache-tomcat-10.0.8.tar.gz
+        dest: /opt
+        remote_src: True
+	- name: remove tar file
+      file:
+        path: /opt/apache-tomcat-10.0.8.tar.gz
+        state: absent
+    - name: create tomcat10 user
+      user:
+        name: tomcat10
+        shell: /bin/bash
+    - name: change tomcat folder ownership to  tomcat10 user
+      file:
+        path: /opt/apache-tomcat-10.0.8
+        owner: tomcat10
+        group: tomcat10
+        state: directory
+        recurse: yes
+    - name: create tomcat service file
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        state: touch
+    - name: chaneg service file ownership
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+    - name: use template to create service file content dynamically
+      template:
+        src: /root/tomcat10.service.j2
+        dest: /etc/systemd/system/tomcat10.service
+    - name: just force systemd to reread configs (2.4 and above)
+      systemd:
+        daemon_reload: yes
+    - name: start tomcat10 service
+      service:
+        name: tomcat10
+        state: restarted
+
+
+
+----------------------------
+
+[root@ip-172-31-51-51 ansible]# cat check_tomcat_folder_exists.yml
+---
+- hosts: localhost
+  tasks:
+    - name: check tomcat folder already exists or not
+      stat:
+        path: /opt/apache-tomcat-10.0.7
+      register: tomcat_output
+    - name: print tomcat out put
+      debug:
+        msg: "{{ tomcat_output  }}"

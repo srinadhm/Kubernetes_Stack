@@ -1,0 +1,235 @@
+###########################
+java
+apache maven
+gradle
+
+sonar
+########################
+
+
+elastic search 
+nexus
+jenkins
+apache tomcat
+
+mysql
+postgresql
+sql server
+#######################################
+
+mongodb
+cassandra
+#######################
+
+sonar 7 needs java 8
+sonar8 and 9 needs java 11
+#################################
+by default sonarqube uses h2 embeeded database
+sonarqube internallly uses elastic search 
+
+if needed we can integrate sonarqube with db as well
+
+postgresql
+sql server
+oracle
+#########################
+
+what is the pre-requisti for elastic search?
+
+before installing elastic search what needs to be installed first?
+
+java should be there before installing elastic search
+####################################################
+elastic search can be setup as a sinle node or group of nodes which is called cluster
+
+right now we are focussing on single node elastic search
+
+Logging
+###############
+ELK
+###################
+
+elastic search uses some memory around 1gb if you want create  a server with 2vpcs and 4gb memoory
+rather than using t2.micro
+
+t2.medium
+
+amazon linux2 server
+1.java
+2.download rpm file of elastic search
+3.we can configure elastic search
+4.we can start elastic search
+
+#########################
+
+ES port number is 9200
+#########################
+
+
+sudo yum install java-11-amazon-corretto-headless -y
+
+
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.4-x86_64.rpm
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.4-x86_64.rpm.sha512
+shasum -a 512 -c elasticsearch-7.13.4-x86_64.rpm.sha512 
+sudo rpm --install elasticsearch-7.13.4-x86_64.rpm
+
+
+
+
+1.java
+2.download deb file of elastic search
+3.we can configure elastic search
+4.we can start elastic search
+
+
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.4-amd64.deb
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.4-amd64.deb.sha512
+shasum -a 512 -c elasticsearch-7.13.4-amd64.deb.sha512 
+sudo dpkg -i elasticsearch-7.13.4-amd64.deb
+
+
+i have a application running i want to see logs of the application and analyze them
+
+
+app1 --- logs  ----    server1
+app2  --- logs   ----    server2
+
+app3      --- lohgs ---- server3
+
+#########################
+
+
+
+nexus
+#####################
+we need java 8 to run nexus 
+download nexus tar file
+we cannto run nexus as a root user we can use ec2-user or ubuntu user to run nexus
+once we chnage run as user we need to do chnage ownership folder permisison of nexus folder as well
+#######################################################################################
+
+
+sudo wget -O nexus.tar.gz https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+
+
+[root@ip-172-31-47-111 opt]# ll
+total 517296
+drwxr-xr-x  4 root root        33 Jul 26 23:53 aws
+-rw-r--r--  1 root root 327263915 Jul 20 12:37 elasticsearch-7.13.4-x86_64.rpm
+drwxr-xr-x 10 root root       181 Jul 29 16:16 nexus-3.32.0-03
+-rw-r--r--  1 root root 202443414 Jul  8 15:56 nexus.tar.gz
+drwxr-xr-x  2 root root         6 Aug 16  2018 rh
+drwxr-xr-x  3 root root        20 Jul 29 16:16 sonatype-work
+
+[root@ip-172-31-47-111 bin]# pwd
+/opt/nexus-3.32.0-03/bin
+[root@ip-172-31-47-111 bin]# ls -lrt
+total 32
+-rw-r--r-- 1 ec2-user ec2-user  1635 Jul  8 08:48 nexus.vmoptions
+-rw-r--r-- 1 ec2-user ec2-user    15 Jul  8 08:48 nexus.rc
+-rwxr-xr-x 1 ec2-user ec2-user 18620 Jul  8 08:48 nexus
+drwxr-xr-x 2 ec2-user ec2-user  4096 Jul 29 16:16 contrib
+
+/opt/nexus-3.32.0-03/bin/nexus start
+/opt/nexus-3.32.0-03/bin/nexus status
+/opt/sonatype-work/nexus3/log
+
+in real projects we will make sure if there are any common ports to be used by both of thme
+we try to chnage port number for one of them
+
+jenkins 8080
+tomcat 8080
+##########################
+
+nexus port number 8081
+
+Your admin user password is located in
+/opt/sonatype-work/nexus3/admin.password on the server.
+
+#################
+we are doing ci cd process
+
+if we want to deployment a version like july realase or aug release
+
+first we need to create a build and keep it some where
+
+who ever wantt to deploy they will download from nexus and deploy whereveet they want
+
+
+Continois Integration what java projects or dotprojects
+
+
+jar
+war
+
+we will be storing in nexus
+###################################################
+
+1.developer will create a code and commit/keep it in github
+2.devops engineer wil use build tools like maven or gradle for java
+projects and create a jar/war file and we need to store this har or war file in
+common place or remote repistory so that others can download and deploy whjere they want
+
+devops ---100 build
+
+
+##############
+jenkins
+###############
+instead of doing ci cd process manually people will use jenkisn
+
+Pre-requisities
+######################
+java 8 or java 11 (preferred is java 11)
+
+download the rpm file 
+and import the rpm key for licencing
+
+install jenkins
+
+
+https://get.jenkins.io/redhat/jenkins-2.274-1.1.noarch.rpm
+
+
+jenkins 8080
+
+
+to uninsyall/remove a rpm 
+
+get the rpm name
+
+
+rpm -qa | grep packahema
+
+
+query
+all
+
+
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat/jenkins.repo
+  sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+  
+If you've previously imported the key from Jenkins, the rpm --import will fail because you already have a key. Please ignore that and move on.
+
+
+  yum install jenkins
+
+
+##############
+ec2-1   jenkins
+ec2-2   sonarqube
+ec2-3   nexus
+ec2-4   elastic search
+ec2-5   grafana prometheus
+
+
+ec2-6   postgresql mysql sql server
+ec2-7  mongodb cassandra
+##################################
+
+
+ec2-1  amazon linux2   es nexus jenkins
+ec2-2 ubuntu elastic search
+#####################################
