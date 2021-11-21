@@ -198,3 +198,7 @@ deployment.apps "nginx-deployment" deleted
 deployment.apps "jenkins-deployment" deleted
 
 #####Delete Service 
+
+[root@ip-172-31-17-62 ~]# kubectl delete  svc nginx-service jenkins-service
+service "nginx-service" deleted
+service "jenkins-service" deleted
