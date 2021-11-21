@@ -1,18 +1,37 @@
 kubernetes --- 
 kubernetes architecture
-master and node components 
+
+Master components
+etcd
+kube-apiserver
+kube-controller-manager
+kube-scheduler
+cloud-controller-manager
+
+Node components 
+A Container Runtime
+kubelet
+kube-proxy
+
 kubectl commands 
+
 Types of cluster creation (
 kubeadm ----- Self managed k8s cluster has to configure/install docker
 minikube ----- Single local development cluster (self managed),Configure Docker
 kops ---- Managed by AWS
 eks  ---- Managed by AWS
  
-1.Kubernetes objects 
-pod 
-replication controller
-replica set 
-deployment 
+1.Kubernetes objects or Workloads
+Pod 
+Replication Controller
+Replica set 
+Deployment 
+Stateful
+Daemon Set
+
+K8s Hierarchy
+
+Cluster (minikube,eks) ----- Node (using kubectl we will create nodes) ---- Pod (we will deploy applications on node) ----- Container (In Single Pod we have multiple containers)----- Service  (To access applications from outside
 
 2.Serivce Types
 node port 
@@ -28,7 +47,7 @@ Authorization : Role Based Access Control, Attribute Based Access Control, Node 
 
 5.Managing Service Accounts
 
-6.Stateful set Daemon set 
+6.Labels and Annotations
 
 7.Configuration  : config map and secrets , Reloader for configmap and secrets
 
