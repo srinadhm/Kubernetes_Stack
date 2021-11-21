@@ -1,0 +1,37 @@
+kubernetes --- 
+kubernetes architecture
+master and node components 
+kubectl commands 
+Types of cluster creation (
+kubeadm ----- Self managed k8s cluster has to configure/install docker
+minikube ----- Single local development cluster (self managed),Configure Docker
+kops ---- Managed by AWS
+eks  ---- Managed by AWS
+ 
+kubernetes objects 
+pod 
+replication controller
+replica set 
+deployment 
+serivce 
+node port 
+cluster ip 
+load balancer
+
+namespace default namespaces,create namespaces
+limits 
+Stateful set Daemon set
+Configuration  : config map and secrets 
+volumes ( aws efs and nfs ) manual
+persistence volume
+persistence volume claim
+Pod and Node scheduling  : node selector, pod affinity, pod anti affinity ,node affinity, taint and toleration 
+health checks ---- Configure Liveness, Readiness and Startup Probes
+Kubernetes Dashboard Setup
+Autoscaling ---- horizontal pod autoscaler ,vertical pod autoscaler , Cluster pod autoscaler
+Reloader for configmap and secrets 
+Integration with Jenkins 
+Kubernetes Deployment strategies --- blue green rollback update recreate canary 
+Monitoring Kubernetes with Grafana and Promotheus 
+Ingress Contoller with ---- load balancer and route53 
+
