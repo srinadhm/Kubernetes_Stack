@@ -54,3 +54,13 @@ persistence volume claim
 
 17.Integration with Jenkins 
 
+18.Multi-Container Pods Design Patterns --- Init Container, Sidecar, Adapter, Ambassador
+
+19.Jobs and Cronjobs
+
+20.Network Policies
+
+
+
+
+
