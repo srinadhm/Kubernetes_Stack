@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+kubectl apply -f Nginx-Deployment.yaml
+kubectl get pods --watch
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-66b6c48dd5-8s6rm   1/1     Running   0          7s
+nginx-deployment-66b6c48dd5-cdzk8   1/1     Running   0          7s
+nginx-deployment-66b6c48dd5-wsh2f   1/1     Running   0          7s
+[root@ip-172-31-17-62 ~]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           109s
