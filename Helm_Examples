@@ -1,1 +1,119 @@
+#Create Deployment using kubectl commands 
+
+kubectl create deployment --image=cloudtechmasters/realtime-project-demo:1 springboot-app
+
+#Expose deployment for service with nodeport for outside accessibility
+
+kubectl expose deployment  springboot-app --port=8888 --name=springboot-service --type=NodePort
+
+
+service/springboot-service exposed
+[root@ip-172-31-24-164 ~]# kubectl get svc
+NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes           ClusterIP   10.96.0.1        <none>        443/TCP          14m
+springboot-service   NodePort    10.105.183.239   <none>        8888:31292/TCP   36s
+[root@ip-172-31-24-164 ~]# curl 10.105.183.239:8888/health
+App is up and running healthy!
+[root@ip-172-31-24-164 ~]# curl 10.105.183.239:8888/getAllCustomers
+[{"customerId":100,"customerName":"vamsikrm"},{"customerId":200,"customerName":"harsha"}]
+
+Within the cluster we can use clusterIp and actual port in which application is running
+
+curl 10.105.183.239:8888/health
+
+Outside the cluster we can use nodeIp and forwaded port number which is 31292 allow 31292 under security groups
+
+54.144.71.40:31292/getAllCustomers
+
+In realtime instead of using kubectl commands for creating deployment and service we will write manifest(yaml) files for deployment and service 
+
+#Delete deployment 
+
+kubectl delete deployment springboot-app
+
+#Delete Service 
+
+kubectl delete service springboot-service
+
+####Springboot-Deployment yaml file 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-deployment
+  labels:
+    app: springboot
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: springboot
+  template:
+    metadata:
+      labels:
+        app: springboot
+    spec:
+      containers:
+      - name: springboot
+        image: cloudtechmasters/realtime-project-demo:1
+        ports:
+        - containerPort: 8888
+
+kubectl apply -f springboot-deployment.yaml
+
+####Springboot-service.yaml file
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-service
+spec:
+  selector:
+    app: springboot
+  ports:
+    - protocol: TCP
+      port: 8888
+      targetPort: 8888
+      nodePort: 32698
+  type: NodePort
+  
+ kubectl apply -f springboot-service.yaml
+ 
+ Instead of writing yaml files separately and calling individually we can create helm charts and organize structure and run all yaml files with single command
+ 
+ what is helm?
+ 
+ helm is a tool that streamlines installing and managing k8s applications
+we can compare helm like apt/yum/homebrew 
+helm uses a package format called charts
+a chart is a collection of files that describe a related set of k8s resources
+
+Helm installation
+#############
+
+[root@ip-172-31-24-164 ~]# curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 11156  100 11156    0     0   631k      0 --:--:-- --:--:-- --:--:--  640k
+[root@ip-172-31-24-164 ~]# chmod 700 get_helm.sh
+[root@ip-172-31-24-164 ~]# ./get_helm.sh
+Downloading https://get.helm.sh/helm-v3.7.2-linux-amd64.tar.gz
+Verifying checksum... Done.
+Preparing to install helm into /usr/local/bin
+helm installed into /usr/local/bin/helm
+
+If path is not set or found 
+
+export PATH=$PATH:/usr/local/bin
+
+## Command to check Helm version
+
+helm version
+version.BuildInfo{Version:"v3.7.2", GitCommit:"663a896f4a815053445eec4153677ddc24a0a361", GitTreeState:"clean", GoVersion:"go1.16.10"}
+
+
+
+
+
+
 
