@@ -282,5 +282,130 @@ NAME                            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S
 kubernetes                      ClusterIP   10.96.0.1       <none>        443/TCP           70m
 myspringbootapp-myfirst-chart   NodePort    10.109.93.127   <none>        32978:31834/TCP   5m12s
 
+#####Try to test the application using node ip and port number 
+
+http://35.172.227.109:30580/getAllCustomers
+
+######Delete helm release 
+
+[root@ip-172-31-24-239 ~]# helm del myspringbootapp
+release "myspringbootapp" uninstalled
 
 
+
+in our previous two sessions we create a java spring boot micro service and we deployed 
+it on ec2 running manually and as well as with docker approach
+
+3.deploy spring boot on k8s cluster without helm charts
+4.deploy spring boot on k8s with helm charts
+##########################################################
+
+to save time i am creating a single node k8s setup using minikube 
+eks cluster
+################################
+
+
+few people will be from docker back groud
+
+for them before using yaml files we will use kubectl command for docker users
+
+
+# start the pod running nginx
+kubectl create deployment --image=cloudtechmasters/realtime-project-demo:1 springboot-deployment
+
+
+############################
+what is helm?
+how to create helm charts for any application?
+how to deploy a application using helm charts?
+
+helm is a tool that streamlines installing and managing k8s applications
+we can compare helm like apt/yum/homebrew 
+helm uses a package format called charts
+a chart is a collection of files that describe a related set of k8s resources
+
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+
+
+i have deployment and service k8s resources
+for both of the resources i wwant to define labels or selector labels or metaadataa annoations
+
+sometimes most of them will be reusable
+
+createby
+release version
+chart name
+chart version
+###################################
+
+[root@ip-172-31-95-205 templates]# cat deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-first-chart.fullname" . }}
+  labels:
+    {{- include "my-first-chart.labels" . | nindent 4 }}
+
+
+{{/*
+Common labels
+*/}}
+{{- define "my-first-chart.labels" -}}
+helm.sh/chart: {{ include "my-first-chart.chart" . }}
+{{ include "my-first-chart.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+
+
+##################
+we need to assume that image is private 
+docker hub
+amazon ecr
+azure acr
+######################################
+we should mention liveliness probe and readinless probe for that application
+we should mention resources for the containers
+how much cpu and memory is needed for container to run min and max both
+###########################################################
+
+Summary. Both liveness & readiness probes are used to control the health of an application.
+ Failing liveness probe will restart the container, 
+whereas failing readiness probe will stop our application from serving traffic.
+
+
+imagePullSecrets:
+        - name: registry-secret
+
+
+we need to create a k8s secret for docker hub with this name registry-secret
+
+kubectl create secret docker-registry registry-secret --docker-server=https://index.docker.io/v1/ --docker-username=cloudtechmasters --docker-password=Manager#436 --docker-email=cloudtechmasters@gmail.com
+
+
+helm upgrade --install --set image.repository="cloudtechmasters/realtime-project-demo"  --set image.tag="1" myjavaapp myapp/ 
+realtime-project-demo
+371732523491
+aws ecr get-login-password \
+     --region us-east-1 | helm registry login \
+     --username AWS \
+     --password-stdin 371732523491.dkr.ecr.us-east-1.amazonaws.com
+	 
+ec2 is different service ecr is different service
+if we want to conenct to ecr from ec2 we need to have permission
+it can be iam user with ecr permission or iam role with ecr permission
+
+
+helm push helm-test-chart-0.1.0.tgz oci://aws_account_id.dkr.ecr.region.amazonaws.com/
+
+helm push myapp-0.2.0.tgz oci://371732523491.dkr.ecr.us-east-1.amazonaws.com/realtime-project-demo
+
+helm chart pull 371732523491.dkr.ecr.us-east-1.amazonaws.com/myapp:0.2.0
+
+
+helm pull oci://371732523491.dkr.ecr.us-east-1.amazonaws.com/myapp --version 0.2.0\
