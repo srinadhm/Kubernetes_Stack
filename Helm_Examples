@@ -111,9 +111,159 @@ export PATH=$PATH:/usr/local/bin
 helm version
 version.BuildInfo{Version:"v3.7.2", GitCommit:"663a896f4a815053445eec4153677ddc24a0a361", GitTreeState:"clean", GoVersion:"go1.16.10"}
 
+####Create helm chart
+
+helm create myfirst-chart
+
+[root@ip-172-31-24-239 myfirst-chart]# ll
+total 8
+drwxr-xr-x 2 root root    6 Jan 22 05:23 charts
+-rw-r--r-- 1 root root 1149 Jan 22 05:23 Chart.yaml
+drwxr-xr-x 3 root root  162 Jan 22 05:23 templates
+-rw-r--r-- 1 root root 1880 Jan 22 05:23 values.yaml
+
+In values.yaml we can mention service type like clusterIp & NodePort and Docker Image, Replicas 
+
+cat values.yaml
+# Default values for myfirst-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 3
+
+image:
+  repository: cloudtechmasters/realtime-project-demo
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1"
+
+service:
+  type: NodePort
+  port: 32978
+
+If we want to mention/refer labels or selector labels or metadata annotations for deployment and service k8s resources instead of writing everytime we can use named templates in 
+helm.Define in _helpers.tpl and use Include to refer in deployment yaml file.
+
+cat _helpers.tpl
+
+Common labels
+*/}}
+{{- define "myfirst-chart.labels" -}}
+helm.sh/chart: {{ include "myfirst-chart.chart" . }}
+
+cat deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "myfirst-chart.fullname" . }}
+  labels:
+    {{- include "myfirst-chart.labels" . | nindent 4 }}
 
 
+Similar to these we can have named templates for labels,selectors,chart,service account.
+
+In Deployment yaml file change the containerPort value which we used in application and image name comes from values.yaml file .
+For templates/service.yaml service type and service port comes values.yaml file.
+
+After making changes we can check what are the values updated through template 
+
+helm template myfirst-chart
+
+[root@ip-172-31-24-239 ~]# helm template myfirst-chart
+---
+# Source: myfirst-chart/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-myfirst-chart
+  labels:
+    helm.sh/chart: myfirst-chart-0.1.0
+    app.kubernetes.io/name: myfirst-chart
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: NodePort
+  ports:
+    - port: 32978
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: myfirst-chart
+    app.kubernetes.io/instance: RELEASE-NAME
+---
+# Source: myfirst-chart/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: RELEASE-NAME-myfirst-chart
+  labels:
+    helm.sh/chart: myfirst-chart-0.1.0
+    app.kubernetes.io/name: myfirst-chart
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: myfirst-chart
+      app.kubernetes.io/instance: RELEASE-NAME
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: myfirst-chart
+        app.kubernetes.io/instance: RELEASE-NAME
+    spec:
+      containers:
+        - name: myfirst-chart
+          securityContext:
+            null
+          image: "cloudtechmasters/realtime-project-demo:1"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8888
+              protocol: TCP
+---
+# Source: myfirst-chart/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "RELEASE-NAME-myfirst-chart-test-connection"
+  labels:
+    helm.sh/chart: myfirst-chart-0.1.0
+    app.kubernetes.io/name: myfirst-chart
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['RELEASE-NAME-myfirst-chart:32978']
+  restartPolicy: Never
 
 
+######Install helm chart 
 
+helm install <projectname> <chartname>
+
+[root@ip-172-31-24-239 ~]# helm install myspringbootapp myfirst-chart
+NAME: myspringbootapp
+LAST DEPLOYED: Sat Jan 22 06:26:58 2022
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+
+#####List helm releases for a particular namespace
+
+[root@ip-172-31-24-239 ~]# helm ls
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+myspringbootapp default         1               2022-01-22 06:26:58.77997364 +0000 UTC  deployed        myfirst-chart-0.1.0     1.16.0
 
