@@ -250,7 +250,7 @@ spec:
   restartPolicy: Never
 
 
-######Install helm chart 
+######Install helm chart to avoid running deployment,service yaml individually 
 
 helm install <projectname> <chartname>
 
@@ -266,4 +266,21 @@ REVISION: 1
 [root@ip-172-31-24-239 ~]# helm ls
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
 myspringbootapp default         1               2022-01-22 06:26:58.77997364 +0000 UTC  deployed        myfirst-chart-0.1.0     1.16.0
+
+######List Deployment,Pods and Service 
+
+[root@ip-172-31-24-239 ~]# kubectl get deployments
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+myspringbootapp-myfirst-chart   3/3     3            3           4m58s
+[root@ip-172-31-24-239 ~]# kubectl get pods
+NAME                                             READY   STATUS    RESTARTS   AGE
+myspringbootapp-myfirst-chart-6f4c649585-4wssm   1/1     Running   0          5m5s
+myspringbootapp-myfirst-chart-6f4c649585-p4w2f   1/1     Running   0          5m5s
+myspringbootapp-myfirst-chart-6f4c649585-w7hcg   1/1     Running   0          5m5s
+[root@ip-172-31-24-239 ~]# kubectl get svc
+NAME                            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+kubernetes                      ClusterIP   10.96.0.1       <none>        443/TCP           70m
+myspringbootapp-myfirst-chart   NodePort    10.109.93.127   <none>        32978:31834/TCP   5m12s
+
+
 
